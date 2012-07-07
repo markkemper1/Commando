@@ -6,7 +6,10 @@ namespace Commando
 {
 	public class CommandExecutor : ICommandExecutor
 	{
-		private readonly List<Action<ICommand>> beforeExecuteActions = new List<Action<ICommand>>();
+		private readonly List<Action<ICommand>> beforeExecuteActions = new List<Action<ICommand>>
+		{
+			DbCommandBase<int>.DefaultBeforeAction
+		};
 
 		public IList<Action<ICommand>> BeforeExecuteActions
 		{
