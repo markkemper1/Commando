@@ -8,7 +8,7 @@ namespace Commando
 {
 	public class DbCommandBaseDefaults
 	{
-		public static string ConnectionString = AppSettingResolver.Setting(ConfigurationManager.ConnectionStrings[0].ConnectionString);
+		public static string ConnectionString = AppSettingResolver.Resolve(ConfigurationManager.ConnectionStrings[0].ConnectionString);
 		public static string Provider = ConfigurationManager.ConnectionStrings[0].ProviderName;
 	}
 
@@ -19,8 +19,6 @@ namespace Commando
 		public string ConnectionString { get; set; }
 
 		public DbProviderFactory DbProvider { get; set; }
-
-		
 
 		public static void DefaultBeforeAction(ICommand command)
 		{
