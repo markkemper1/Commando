@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Text.RegularExpressions;
 
 namespace Commando
@@ -11,12 +12,21 @@ namespace Commando
 		{
 			var raw = ConfigurationManager.AppSettings[key];
 
+			if (string.IsNullOrWhiteSpace(raw))
+				return raw;
+
 			if (raw.IndexOf('{') < 0) return raw;
 
 			var matches = regex.Matches(raw);
 
 			foreach(Match m in matches)
-				raw = raw.Replace(m.Groups[0].Value, Resolve(m.Groups[1].Value));
+			{
+				var token = m.Groups[0].Value;
+				var resolved = Resolve(m.Groups[1].Value);
+				if(resolved == null)
+					throw new ArgumentException("The token: \"{}\" failed to resolve to an appSetting value", token);
+				raw = raw.Replace(token, resolved);
+			}
 
 			return raw;
 		}

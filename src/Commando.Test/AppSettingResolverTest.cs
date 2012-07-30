@@ -14,8 +14,19 @@ namespace Commando.Test
 			ConfigurationManager.AppSettings["one"] = "one_then_{none}";
 			ConfigurationManager.AppSettings["two"] = "{none}_{none2}";
 			ConfigurationManager.AppSettings["two_levels"] = "{none}_{two}";
-			ConfigurationManager.AppSettings["none"] = "none_value";
-			ConfigurationManager.AppSettings["none"] = "none_value";
+			ConfigurationManager.AppSettings["invalid"] = "{none}_{two_NOT here}";
+		}
+
+		[Test]
+		public void missing_setting_should_return_null()
+		{
+			Assert.That(AppSettingResolver.Resolve("nothing"), Is.EqualTo(null));
+		}
+
+		[Test]
+		public void when_unable_to_resolve_token_should_throw()
+		{
+			Assert.That(() => { AppSettingResolver.Resolve("invalid"); }, Throws.ArgumentException);
 		}
 
 		[Test]
