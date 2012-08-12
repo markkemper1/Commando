@@ -37,7 +37,7 @@ namespace Commando.Test
 		}
 
 		[Test]
-		public void should_resolve_appSeting_one_level_of_tokens()
+		public void should_resolve_appSeting_one_level_of_tokens()	
 		{
 			Assert.That(AppSettingResolver.Setting("one"), Is.EqualTo("one_then_none_value"));
 		}

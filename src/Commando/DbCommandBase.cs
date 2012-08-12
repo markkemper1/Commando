@@ -6,12 +6,6 @@ using System.Diagnostics;
 
 namespace Commando
 {
-	public class DbCommandBaseDefaults
-	{
-		public static string ConnectionString = AppSettingResolver.Resolve(ConfigurationManager.ConnectionStrings[0].ConnectionString);
-		public static string Provider = ConfigurationManager.ConnectionStrings[0].ProviderName;
-	}
-
 	public abstract class DbCommandBase<T> : CommandResultBase<T>, IDbProviderCommmand
 	{
 		public IDbTransaction Transaction { get; set; }
@@ -25,8 +19,8 @@ namespace Commando
 			if(command is IDbProviderCommmand)
 			{
 				var dbCommand = command as IDbProviderCommmand;
-				dbCommand.DbProvider = DbProviderFactories.GetFactory(DbCommandBaseDefaults.Provider);
-				dbCommand.ConnectionString = DbCommandBaseDefaults.ConnectionString;
+				dbCommand.DbProvider = DbProviderFactories.GetFactory(DbHelper.ProviderName);
+				dbCommand.ConnectionString = DbHelper.ConnectionString;
 			}
 		}
 
