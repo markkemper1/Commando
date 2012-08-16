@@ -26,7 +26,7 @@ namespace Commando.Test
 			var executor = new CommandExecutor();
 			executor.Execute(command);
 
-			Assert.AreSame(executor, command.Executor);
+			Assert.AreSame(executor, command.ExecutorUsed);
 		}
 
 		[Test]
@@ -37,7 +37,7 @@ namespace Commando.Test
 			int beforeCount = 0;
 
 			var executor = new CommandExecutor();
-			executor.BeforeExecuteActions.Add(x=> beforeCount++);
+			executor.Register(x=> beforeCount++);
 			executor.Execute(command);
 
 			Assert.AreEqual(1, beforeCount);
@@ -62,24 +62,21 @@ namespace Commando.Test
 
 			public void Execute()
 			{
+				this.ExecutorUsed = this.Executor;
 				Count++;
 			}
 
+			public ICommandExecutor ExecutorUsed { get; set; }
 			public ICommandExecutor Executor { get; set; }
 		}
 
-		public class ResultCommand : ICommandResult<int>
+		public class ResultCommand : CommandResultBase<int>
 		{
 			public int Count { get; private set; }
 
-			public void Execute()
+			public override int ExecuteWithResult()
 			{
-				Count++;
-			}
-
-			public int Result
-			{
-				get { return Count; }
+				return ++Count;	
 			}
 		}
 	}

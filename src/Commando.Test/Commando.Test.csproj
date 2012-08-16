@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettingResolverTest.cs" />
+    <Compile Include="CachingTest.cs" />
     <Compile Include="CommandExecutorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

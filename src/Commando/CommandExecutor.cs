@@ -6,19 +6,24 @@ namespace Commando
 {
 	public class CommandExecutor : ICommandExecutor
 	{
-		private readonly List<Action<ICommand>> beforeExecuteActions = new List<Action<ICommand>>
+		private readonly List<Tuple<Action<ICommand>,Action<ICommand>>> beforeExecuteActions = new List<Tuple<Action<ICommand>, Action<ICommand>>>()
 		{
-			DbCommandBase<int>.DefaultBeforeAction
+			new Tuple<Action<ICommand>, Action<ICommand>>(DbCommandBase<int>.DefaultBeforeAction, null)
 		};
-
-		public IList<Action<ICommand>> BeforeExecuteActions
-		{
-			get { return this.beforeExecuteActions; }
-		}
 
 		public static ICommandExecutor Default = new CommandExecutor();
 
 		public ICommandExecutor ExecutorOverride { get; set; }
+
+		public void Register(Tuple<Action<ICommand>,Action<ICommand>> beforeAndAfter)
+		{
+			beforeExecuteActions.Add(new Tuple<Action<ICommand>, Action<ICommand>>(beforeAndAfter.Item1, beforeAndAfter.Item2));
+		}
+
+		public void Register(Action<ICommand> before =null, Action<ICommand> after = null)
+		{
+			beforeExecuteActions.Add(new Tuple<Action<ICommand>, Action<ICommand>>(before,after));
+		}
 
 		/// <summary>
 		///		Executes the command.
@@ -29,6 +34,7 @@ namespace Commando
 		{
 			this.AttachServices(command);
 			command.Execute();
+			this.DettachServices(command);
 		}
 
 		/// <summary>
@@ -56,9 +62,22 @@ namespace Commando
 			if (command is ICompositeCommand)
 				((ICompositeCommand)command).Executor = ExecutorOverride ?? this;
 
-			foreach (var action in BeforeExecuteActions)
+			foreach (var tuple in beforeExecuteActions)
 			{
-				action(command);
+				if(tuple.Item1 != null)
+					tuple.Item1(command);
+			}
+		}
+
+		protected virtual void DettachServices(ICommand command)
+		{
+			if (command is ICompositeCommand)
+				((ICompositeCommand)command).Executor = null;
+
+			foreach (var tuple in beforeExecuteActions)
+			{
+				if(tuple.Item2 != null)
+					tuple.Item2(command);
 			}
 		}
 	}
