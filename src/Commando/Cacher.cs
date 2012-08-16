@@ -4,10 +4,10 @@ namespace Commando
 {
 	public static class Caching
 	{
-		public static Tuple<Action<ICommand>, Action<ICommand>> Create<T>(Func<T, object> getter, Action<T> setter) where T : ICommandResult
+		public static Func<ICommand, Action<ICommand>> Create<T>(Func<T, object> getter, Action<T> setter) where T : ICommandResult
 		{
 			var cacher = new CachingTypeGymnast<T>(getter, setter);
-			return new Tuple<Action<ICommand>, Action<ICommand>>(cacher.Before, cacher.After);
+			return cacher.Before;
 		}
 
 		public static void Cache<T>(this CommandExecutor executor, Func<T, object> getter, Action<T> setter) where T : ICommandResult
@@ -27,27 +27,21 @@ namespace Commando
 			Set = set;
 		}
 
-		public void Before(ICommand command)
+		public Action<ICommand> Before(ICommand command)
 		{
 			if (!(command is T))
-				return;
+				return null;
 
 			var commandResult = (T)command;
 			var cached = this.Get(commandResult);
 
 			if (cached != null)
+			{
 				commandResult.ResultValue = cached;
+				return null;
+			}
+
+			return command1 => Set( ((T)command1));
 		}
-
-		public void After(ICommand command)
-		{
-			if (!(command is T))
-				return;
-
-			var commandResult = (T)command;
-			Set(commandResult);
-		}
-
-
 	}
 }

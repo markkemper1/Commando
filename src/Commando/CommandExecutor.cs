@@ -6,23 +6,29 @@ namespace Commando
 {
 	public class CommandExecutor : ICommandExecutor
 	{
-		private readonly List<Tuple<Action<ICommand>,Action<ICommand>>> beforeExecuteActions = new List<Tuple<Action<ICommand>, Action<ICommand>>>()
+		private readonly List<Func<ICommand, Action<ICommand>>> beforeExecuteActions = new List<Func<ICommand, Action<ICommand>>>()
 		{
-			new Tuple<Action<ICommand>, Action<ICommand>>(DbCommandBase<int>.DefaultBeforeAction, null)
+			DbCommandBase<int>.DefaultBeforeAction
 		};
 
 		public static ICommandExecutor Default = new CommandExecutor();
 
 		public ICommandExecutor ExecutorOverride { get; set; }
 
-		public void Register(Tuple<Action<ICommand>,Action<ICommand>> beforeAndAfter)
+		public void Register(Func<ICommand, Action<ICommand>> beforeAndAfter)
 		{
-			beforeExecuteActions.Add(new Tuple<Action<ICommand>, Action<ICommand>>(beforeAndAfter.Item1, beforeAndAfter.Item2));
+			beforeExecuteActions.Add(beforeAndAfter);
 		}
 
-		public void Register(Action<ICommand> before =null, Action<ICommand> after = null)
+		public void Register(Action<ICommand> beforeCommand)
 		{
-			beforeExecuteActions.Add(new Tuple<Action<ICommand>, Action<ICommand>>(before,after));
+			Func<ICommand, Action<ICommand>> wrapped = c =>
+				{
+					beforeCommand(c);
+					return null;
+				};
+
+			beforeExecuteActions.Add(wrapped);
 		}
 
 		/// <summary>
@@ -32,9 +38,9 @@ namespace Commando
 		[DebuggerNonUserCodeAttribute]
 		public void Execute(ICommand command)
 		{
-			this.AttachServices(command);
+			var afters = this.AttachServices(command);
 			command.Execute();
-			this.DettachServices(command);
+			this.DettachServices(command, afters);
 		}
 
 		/// <summary>
@@ -57,27 +63,29 @@ namespace Commando
 		///		NB: be sure to call base.AttachedServies(command) so the composite commands can have the executor attached, unless you want to override this too.
 		/// </summary>
 		/// <param name="command">The service to decorate</param>
-		protected virtual void AttachServices(ICommand command)
+		protected virtual List<Action<ICommand>> AttachServices(ICommand command)
 		{
 			if (command is ICompositeCommand)
 				((ICompositeCommand)command).Executor = ExecutorOverride ?? this;
 
-			foreach (var tuple in beforeExecuteActions)
+			var afters = new List<Action<ICommand>>();
+
+			foreach (var action in beforeExecuteActions)
 			{
-				if(tuple.Item1 != null)
-					tuple.Item1(command);
+				afters.Add(action(command));
 			}
+			return afters;
 		}
 
-		protected virtual void DettachServices(ICommand command)
+		protected virtual void DettachServices(ICommand command, List<Action<ICommand>> afters)
 		{
 			if (command is ICompositeCommand)
 				((ICompositeCommand)command).Executor = null;
 
-			foreach (var tuple in beforeExecuteActions)
+			foreach (var action in afters)
 			{
-				if(tuple.Item2 != null)
-					tuple.Item2(command);
+				if(action != null)
+					action(command);
 			}
 		}
 	}

@@ -53,6 +53,24 @@ namespace Commando.Test
 			Assert.AreNotEqual(result1, result2);
 		}
 
+		[Test]
+		public void caching_should_not_set_into_cache_if_fetched_from_cache()
+		{
+			var command = new ResultCommand();
+			var executor = new CommandExecutor();
+
+			int? cachedResult = 1;
+			int setCalls = 0;
+			executor.Cache<ResultCommand>(x => cachedResult, (x) => setCalls+= 1);
+
+			executor.Execute(command);
+			executor.Execute(command);
+			executor.Execute(command);
+			executor.Execute(command);
+
+			Assert.AreEqual(0, setCalls);
+		}
+
 
 		public class SimpleCommand : ICommand, ICompositeCommand
 		{

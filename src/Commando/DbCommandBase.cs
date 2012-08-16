@@ -14,7 +14,7 @@ namespace Commando
 
 		public DbProviderFactory DbProvider { get; set; }
 
-		public static void DefaultBeforeAction(ICommand command)
+		public static Action<ICommand> DefaultBeforeAction(ICommand command)
 		{
 			if(command is IDbProviderCommmand)
 			{
@@ -22,6 +22,7 @@ namespace Commando
 				dbCommand.DbProvider = DbProviderFactories.GetFactory(DbHelper.ProviderName);
 				dbCommand.ConnectionString = DbHelper.ConnectionString;
 			}
+			return null;
 		}
 
 		public override T ExecuteWithResult()
