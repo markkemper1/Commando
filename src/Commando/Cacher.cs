@@ -5,8 +5,6 @@ namespace Commando
     public interface ICacheableCommand
     {
         string CacheKey { get; }
-
-        TimeSpan CacheTime { get; }
     }
 
     public static class Caching
