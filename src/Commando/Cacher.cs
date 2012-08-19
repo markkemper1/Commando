@@ -2,7 +2,14 @@
 
 namespace Commando
 {
-	public static class Caching
+    public interface ICacheableCommand
+    {
+        string CacheKey { get; }
+
+        TimeSpan CacheTime { get; }
+    }
+
+    public static class Caching
 	{
 		public static Func<ICommand, Action<ICommand>> Create<T>(Func<T, object> getter, Action<T> setter) where T : ICommandResult
 		{
