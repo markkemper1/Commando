@@ -2,7 +2,7 @@
 
 namespace Commando
 {
-    public interface ICacheableCommand
+    public interface ICacheableCommand : ICommandResult
     {
         string CacheKey { get; }
     }
