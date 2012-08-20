@@ -33,11 +33,11 @@ namespace Commando.Test
 			var result1 = executor.Execute(command);
 			var result2 = executor.Execute(command);
 
-			Assert.AreNotEqual(result1, result2);
+			Assert.AreEqual(result1, result2);
 		}
 
 		[Test]
-		public void caching_should__not_be_affected_by_other_commands_()
+		public void caching_should_not_be_affected_by_other_commands_()
 		{
 			var command = new ResultCommand();
 			var executor = new CommandExecutor();
@@ -50,7 +50,7 @@ namespace Commando.Test
 
 			var result2 = executor.Execute(command);
 
-			Assert.AreNotEqual(result1, result2);
+            Assert.AreEqual(result1, result2);
 		}
 
 		[Test]

@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Commando
 {
 	public class CommandExecutor : ICommandExecutor
 	{
-		private readonly List<Func<ICommand, Action<ICommand>>> beforeExecuteActions = new List<Func<ICommand, Action<ICommand>>>()
+        private readonly List<Func<ICommand, BeforeExecutionResult>> beforeExecuteActions = new List<Func<ICommand, BeforeExecutionResult>>()
 		{
 			DbCommandBase<int>.DefaultBeforeAction
 		};
@@ -17,29 +18,45 @@ namespace Commando
 
 		public void Register(Func<ICommand, Action<ICommand>> beforeAndAfter)
 		{
-			beforeExecuteActions.Add(beforeAndAfter);
+		    Func<ICommand, BeforeExecutionResult> wrapper =
+		        x =>
+		            {
+		                var result = new BeforeExecutionResult();
+                        result.AfterAction = beforeAndAfter(x);
+		                return result;
+		            };
+
+            beforeExecuteActions.Add(wrapper);
 		}
 
 		public void Register(Action<ICommand> beforeCommand)
 		{
-			Func<ICommand, Action<ICommand>> wrapped = c =>
-				{
-					beforeCommand(c);
-					return null;
-				};
+            Func<ICommand, BeforeExecutionResult> wrapper =
+                x =>
+                {
+                    beforeCommand(x);
+                    return null;
+                };
 
-			beforeExecuteActions.Add(wrapped);
+            beforeExecuteActions.Add(wrapper);
 		}
+
+        public void Register(Func<ICommand, BeforeExecutionResult> filter)
+        {
+            beforeExecuteActions.Add(filter);
+        }
 
 		/// <summary>
 		///		Executes the command.
 		/// </summary>
 		/// <param name="command">The command to execute</param>
-		[DebuggerNonUserCodeAttribute]
 		public void Execute(ICommand command)
 		{
 			var afters = this.AttachServices(command);
-			command.Execute();
+            
+            if(!afters.Any(x=> x!= null && x.SkipExecution))
+			    command.Execute();
+
 			this.DettachServices(command, afters);
 		}
 
@@ -49,7 +66,6 @@ namespace Commando
 		/// <typeparam name="T"></typeparam>
 		/// <param name="command"></param>
 		/// <returns></returns>
-		[DebuggerNonUserCode]
 		public T Execute<T>(ICommandResult<T> command)
 		{
 			this.Execute((ICommand)command);
@@ -63,12 +79,12 @@ namespace Commando
 		///		NB: be sure to call base.AttachedServies(command) so the composite commands can have the executor attached, unless you want to override this too.
 		/// </summary>
 		/// <param name="command">The service to decorate</param>
-		protected virtual List<Action<ICommand>> AttachServices(ICommand command)
+		protected virtual List<BeforeExecutionResult> AttachServices(ICommand command)
 		{
 			if (command is ICompositeCommand)
 				((ICompositeCommand)command).Executor = ExecutorOverride ?? this;
 
-			var afters = new List<Action<ICommand>>();
+            var afters = new List<BeforeExecutionResult>();
 
 			foreach (var action in beforeExecuteActions)
 			{
@@ -77,15 +93,18 @@ namespace Commando
 			return afters;
 		}
 
-		protected virtual void DettachServices(ICommand command, List<Action<ICommand>> afters)
+        protected virtual void DettachServices(ICommand command, List<BeforeExecutionResult> afters)
 		{
 			if (command is ICompositeCommand)
 				((ICompositeCommand)command).Executor = null;
 
-			foreach (var action in afters)
+			foreach (var result in afters)
 			{
-				if(action != null)
-					action(command);
+                if (result != null)
+                {
+                    if(result.AfterAction != null)
+                        result.AfterAction(command);
+                }
 			}
 		}
 	}

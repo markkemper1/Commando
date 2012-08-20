@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettingResolver.cs" />
+    <Compile Include="BeforeExecuteState.cs" />
     <Compile Include="Cacher.cs" />
     <Compile Include="CommandExecutor.cs" />
     <Compile Include="CommandResultBase.cs" />

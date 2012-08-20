@@ -14,7 +14,7 @@ namespace Commando
 
 		public DbProviderFactory DbProvider { get; set; }
 
-		public static Action<ICommand> DefaultBeforeAction(ICommand command)
+        public static BeforeExecutionResult DefaultBeforeAction(ICommand command)
 		{
 			if(command is IDbProviderCommmand)
 			{
