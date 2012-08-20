@@ -35,7 +35,7 @@ namespace Commando
                     return;
                 }
 
-			    if( (default(T)).Equals(value) || (value is T) )
+			    if( value is T)
 				{
 					this.result = (T) value;
 				}
