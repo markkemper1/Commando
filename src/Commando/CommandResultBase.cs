@@ -28,7 +28,14 @@ namespace Commando
 			get { return this.result; } 
 			set
 			{
-				if(value is T)
+                //if its not a value type then allow null to be set
+                if (value == null  && ! (typeof(T).IsValueType))
+                {
+                    this.result = default(T);
+                    return;
+                }
+
+			    if( (default(T)).Equals(value) || (value is T) )
 				{
 					this.result = (T) value;
 				}

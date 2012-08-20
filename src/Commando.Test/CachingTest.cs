@@ -27,8 +27,8 @@ namespace Commando.Test
 			var command = new ResultCommand();
 			var executor = new CommandExecutor();
 
-			int? cachedResult = null;
-			executor.Cache<ResultCommand>(x => cachedResult, (x) => cachedResult = x.Result.Value);
+            ResultCommand cachedResult = null;
+			executor.Cache<ResultCommand>(x => cachedResult, (x) => cachedResult = x);
 
 			var result1 = executor.Execute(command);
 			var result2 = executor.Execute(command);
@@ -42,8 +42,8 @@ namespace Commando.Test
 			var command = new ResultCommand();
 			var executor = new CommandExecutor();
 
-			int? cachedResult = null;
-			executor.Cache<ResultCommand>(x => cachedResult, (x) => cachedResult = x.Result.Value);
+            ResultCommand cachedResult = null;
+			executor.Cache<ResultCommand>(x => cachedResult, (x) => cachedResult = x);
 
 			var result1 = executor.Execute(command);
 			executor.Execute(new SimpleCommand());
@@ -59,7 +59,10 @@ namespace Commando.Test
 			var command = new ResultCommand();
 			var executor = new CommandExecutor();
 
-			int? cachedResult = 1;
+            ResultCommand cachedResult = new ResultCommand()
+                                             {
+                                                 Result = 1
+                                             };
 			int setCalls = 0;
 			executor.Cache<ResultCommand>(x => cachedResult, (x) => setCalls+= 1);
 
@@ -72,6 +75,24 @@ namespace Commando.Test
 		}
 
 
+        [Test]
+        public void caching_of_null_should_be_allowed()
+        {
+            var command = new NullResultCommand();
+            var executor = new CommandExecutor();
+
+            NullResultCommand cachedResult = null;
+            executor.Cache<NullResultCommand>(x => cachedResult, (x) => cachedResult = x);
+
+            var result1 = executor.Execute(command);
+            executor.Execute(new NullResultCommand());
+
+            var result2 = executor.Execute(command);
+
+            Assert.AreSame(result1, result2);
+            Assert.IsNull(result1);
+        }
+
 		public class SimpleCommand : ICommand, ICompositeCommand
 		{
 			public int Count { get; private set; }
@@ -83,6 +104,17 @@ namespace Commando.Test
 
 			public ICommandExecutor Executor { get; set; }
 		}
+
+        public class NullResultCommand : CommandResultBase<object>
+        {
+            public int Count { get; private set; }
+
+            public override object ExecuteWithResult()
+            {
+                Count += 1;
+                return null;
+            }
+        }
 
 		public class ResultCommand : CommandResultBase<int?>
 		{

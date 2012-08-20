@@ -9,13 +9,13 @@ namespace Commando
 
     public static class Caching
 	{
-        public static Func<ICommand, BeforeExecutionResult> Create<T>(Func<T, object> getter, Action<T> setter) where T : ICommandResult
+        public static Func<ICommand, BeforeExecutionResult> Create<T>(Func<T, T> getter, Action<T> setter) where T : ICommandResult
 		{
 			var cacher = new CachingTypeGymnast<T>(getter, setter);
 			return cacher.Before;
 		}
 
-		public static void Cache<T>(this CommandExecutor executor, Func<T, object> getter, Action<T> setter) where T : ICommandResult
+		public static void Cache<T>(this CommandExecutor executor, Func<T, T> getter, Action<T> setter) where T : ICommandResult
 		{
 			executor.Register(Create(getter, setter));
 		}
@@ -23,10 +23,10 @@ namespace Commando
 	}
 	public class CachingTypeGymnast<T> where T : ICommandResult
 	{
-		protected Func<T, object> Get { get; set; }
+		protected Func<T, T> Get { get; set; }
 		protected Action<T> Set { get; set; }
 
-		public CachingTypeGymnast(Func<T, object> get, Action<T> set)
+		public CachingTypeGymnast(Func<T, T> get, Action<T> set)
 		{
 			Get = get;
 			Set = set;
@@ -42,7 +42,7 @@ namespace Commando
 
 			if (cached != null)
 			{
-				commandResult.ResultValue = cached;
+				commandResult.ResultValue = cached.ResultValue;
 			    return new BeforeExecutionResult()
 			               {
 			                   SkipExecution = true
