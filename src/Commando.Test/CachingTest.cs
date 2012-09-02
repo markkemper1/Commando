@@ -93,7 +93,58 @@ namespace Commando.Test
             Assert.IsNull(result1);
         }
 
-		public class SimpleCommand : ICommand, ICompositeCommand
+        [Test]
+        public void should_be_easy_to_configure_cache_provider()
+        {
+            var executor = new CommandExecutor();
+            var provider = new StupidCache();
+            executor
+                .UseCache(() => provider)
+                .For<ResultCommand>(c => "ResultCommand")
+                    .Do(
+                        (c, k) => c.Get(k) as ResultCommand,
+                        (c, k, r) => c.Store(k, r)
+                    )
+                .For<ResultCommand2>(c=> "ResultCommand2")
+                    .Do(
+                        (c, k) => c.Get(k) as ResultCommand2,
+                        (c, k, r) => c.Store(k, r)
+                    );
+                            
+
+            var command_1 = new ResultCommand();
+            var result_1_1 = executor.Execute(command_1);
+            var result_1_2 = executor.Execute(command_1);
+
+            Assert.AreEqual(result_1_1, result_1_2);
+
+            var command_2 = new ResultCommand();
+            var result_2_1 = executor.Execute(command_2);
+            var result_2_2 = executor.Execute(command_2);
+            var result_1_3 = executor.Execute(command_1);
+
+            Assert.AreEqual(result_2_1, result_2_2);
+            Assert.AreNotSame(result_1_1, result_1_3);
+        }
+
+	    public class StupidCache
+	    {
+	        private object value;
+	        private string key;
+
+            public void Store(string key, object value)
+            {
+                this.key = key;
+                this.value = value;
+            }
+
+            public object Get(string key)
+            {
+                return this.key == key ? this.value : null;
+            }
+	    }
+
+	    public class SimpleCommand : ICommand, ICompositeCommand
 		{
 			public int Count { get; private set; }
 
@@ -125,5 +176,16 @@ namespace Commando.Test
 				return ++Count;
 			}
 		}
+
+
+        public class ResultCommand2 : CommandResultBase<int?>
+        {
+            public int Count { get; private set; }
+
+            public override int? ExecuteWithResult()
+            {
+                return ++Count;
+            }
+        }
 	}
 }

@@ -5,7 +5,7 @@
 		<version>$version$</version>
 		<authors>$author$</authors>
 		<owners>$author$</owners>
-		<projectUrl>http://github.com/markkemper1/RazorEmail</projectUrl>
+		<projectUrl>http://github.com/markkemper1/Commando</projectUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<summary>
 			A common command infrastructure library. Provides an ICommand interface and a default command executor.
