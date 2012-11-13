@@ -47,6 +47,7 @@
     <Compile Include="CommandExecutor.cs" />
     <Compile Include="CommandResultBase.cs" />
     <Compile Include="CommandTypes.cs" />
+    <Compile Include="CommandBase.cs" />
     <Compile Include="DbCommandBase.cs" />
     <Compile Include="DbCommandExtensions.cs" />
     <Compile Include="DbHelper.cs" />
