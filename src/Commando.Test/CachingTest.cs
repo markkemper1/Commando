@@ -36,6 +36,22 @@ namespace Commando.Test
 			Assert.AreEqual(result1, result2);
 		}
 
+        [Test]
+        public void subclassed_should_produce_different_result()
+        {
+            var command = new ResultCommand();
+            var executor = new CommandExecutor();
+
+            ResultCommand cachedResult = null;
+            executor.Cache<ResultCommand>(x => cachedResult, (x) => cachedResult = x);
+
+            var result1 = executor.Execute(command);
+            var result2 = executor.Execute(command);
+
+            Assert.AreEqual(result1, result2);
+        }
+
+
 		[Test]
 		public void caching_should_not_be_affected_by_other_commands_()
 		{
@@ -57,6 +73,8 @@ namespace Commando.Test
 		public void caching_should_not_set_into_cache_if_fetched_from_cache()
 		{
 			var command = new ResultCommand();
+		    var command2 = new ResultCommandSubClass();
+
 			var executor = new CommandExecutor();
 
             ResultCommand cachedResult = new ResultCommand()
@@ -67,11 +85,11 @@ namespace Commando.Test
 			executor.Cache<ResultCommand>(x => cachedResult, (x) => setCalls+= 1);
 
 			executor.Execute(command);
-			executor.Execute(command);
-			executor.Execute(command);
-			executor.Execute(command);
+			
+            var result2 = executor.Execute(command2);
+            var resutl3 = executor.Execute(command2);
 
-			Assert.AreEqual(0, setCalls);
+			Assert.AreNotEqual(result2, resutl3);
 		}
 
 
@@ -176,6 +194,10 @@ namespace Commando.Test
 				return ++Count;
 			}
 		}
+
+        public class ResultCommandSubClass : ResultCommand
+        {
+        }
 
 
         public class ResultCommand2 : CommandResultBase<int?>

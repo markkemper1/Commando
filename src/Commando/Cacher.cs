@@ -91,6 +91,9 @@ namespace Commando
             if (!(command is T))
                 return null;
 
+            if (command.GetType() != typeof(T))
+                return null;
+
             var commandResult = (T)command;
             var cached = this.Get(commandResult);
 
